@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to ReqMapping Index</title>
+</head>
+<body>
+    <h1>Welcome to ReqMapping Index</h1>
+    <a th:href="@{/classReqMapping/classtest1}">Go to ClassReqMappingTest1</a>
+    </br>
+    <a th:href="@{/reqMappingValueTest1}">测试@RequestMapping的value属性--->reqMappingValueTest1</a>
+    </br>
+    <a th:href="@{/reqMappingValueTest2}">测试@RequestMapping的value属性--->reqMappingValueTest2</a>
+    </br>
+    <form th:action="@{/reqMappingMethodTest1}" method="post">
+        <input type="submit" value="测试@RequestMapping的method属性">
+    </form>
+    </br>
+    <!-- 括号内携带参数   -->
+    <a th:href="@{/reqMappingParamsTest1('username'='admin','password'=123456)}">测试@RequestMapping的params属性</a>
+    </br>
+    <!--  测试@RequestMapping的headers属性Host=localhost:28080  -->
+    <a th:href="@{/reqMappingHeadersTest1}">测试@RequestMapping的headers属性</a>
+    </br>
+
+    <a th:href="@{/aaab/a/a/a/reqMappingAntTest1}">测试@RequestMapping的Ant风格(**)路径</a>
+    </br>
+    <a th:href="@{singleStarstartreqMappingAntTest2}">测试@RequestMapping的Ant风格(*)路径</a>
+    </br>
+    <a th:href="@{query!reqMappingAntTest3}">测试@RequestMapping的Ant风格(?)路径</a>
+    </br>
+
+    <a th:href="@{/reqMappingRestParamTest1/username/password}">测试路径中的占位符(RestFul风格传参)</a>
+    </br>
+</body>
+</html>
