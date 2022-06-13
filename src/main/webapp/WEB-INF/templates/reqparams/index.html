@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
     <title>Welcome to ReqParams Index</title>
@@ -7,5 +7,15 @@
 <body>
     <h1>Welcome to ReqParams Index</h1>
     <a th:href="@{/servletApiTest1('username'='admin','password'=123456)}">通过ServletAPI获取参数</a>
+
+    <form th:action="@{/controllerParams1}" method="post">
+        <label>通过控制器方法的形参获取请求参数</label></br>
+        username:<input type="text" name="username"></br>
+        password:<input type="password" name="password"></br>
+        hobby:<input type="checkbox" name="hobby" value="a">a
+            <input type="checkbox" name="hobby" value="a">b
+            <input type="checkbox" name="hobby" value="a">c</br>
+        <input type="submit" value="submit">
+    </form>
 </body>
 </html>

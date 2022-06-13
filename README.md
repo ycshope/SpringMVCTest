@@ -538,7 +538,43 @@ public class ServletApiTest1 {
 
 ```
 
+### 2、通过控制器方法的形参获取请求参数
 
+在控制器方法的形参位置，设置和请求参数同名的形参，当浏览器发送请求，匹配到请求映射时，在DispatcherServlet中就会将请求参数赋值给相应的形参
+
+```html
+<form th:action="@{/controllerParams1}" method="post">
+        <label>通过控制器方法的形参获取请求参数</label></br>
+        username:<input type="text" name="username"></br>
+        password:<input type="password" name="password"></br>
+        hobby:<input type="checkbox" name="hobby" value="a">a
+            <input type="checkbox" name="hobby" value="a">b
+            <input type="checkbox" name="hobby" value="a">c</br>
+        <input type="submit" value="submit">
+    </form>
+```
+
+```java
+@Controller
+public class ControllerParams1 {
+    @RequestMapping(value = "/controllerParams1")
+    public String controllerParams1(String username, String password, String[] hobby) {
+        System.out.println("username=" + username + "\tpassword=" + password + "\thobby=" + Arrays.toString(hobby));
+        return "controllerparams";
+    }
+
+}
+```
+
+
+
+注：
+
+若请求所传输的请求参数中有多个同名的请求参数，此时可以在控制器方法的形参中设置字符串数组或者字符串类型的形参接收此请求参数
+
+若使用字符串数组类型的形参，此参数的数组中包含了每一个数据
+
+若使用字符串类型的形参，此参数的值为每个数据中间使用逗号拼接的结果
 
 # 五、域对象共享数据
 
