@@ -576,6 +576,55 @@ public class ControllerParams1 {
 
 若使用字符串类型的形参，此参数的值为每个数据中间使用逗号拼接的结果
 
+### 3、@RequestParam
+
+@RequestParam是将请求参数和控制器方法的形参创建映射关系
+
+@RequestParam注解一共有三个属性：
+
+value：指定为形参赋值的请求参数的参数名
+
+required：设置是否必须传输此请求参数，默认值为true
+
+若设置为true时，则当前请求必须传输value所指定的请求参数，若没有传输该请求参数，且没有设置defaultValue属性，则页面报错400：Required String parameter ‘xxx’ is not present；若设置为false，则当前请求不是必须传输value所指定的请求参数，若没有传输，则注解所标识的形参的值为null
+
+defaultValue：不管required属性值为true或false，当value所指定的请求参数没有传输或传输的值为""时，则使用默认值为形参赋值
+
+```html
+<form th:action="@{/requestParamTest1}" method="post">
+        <label>请求参数映射器</label></br>
+        username:<input type="text" name="username"></br>
+        password:<input type="password" name="pwd"></br>
+        hobby:<input type="checkbox" name="hobby" value="a">a
+        <input type="checkbox" name="hobby" value="a">b
+        <input type="checkbox" name="hobby" value="a">c</br>
+        <input type="submit" value="submit">
+    </form>
+```
+
+```java
+@Controller
+public class RequestParamTest1 {
+    //  @RequestParam(value = "pwd") 给形参赋别名
+    @RequestMapping("/requestParamTest1")
+    public String requestParamTest1(
+            @RequestParam(defaultValue = "admin") String username,
+            @RequestParam(value = "pwd") String password,
+            @RequestParam(required = false) String[] hobby) {
+        System.out.println("username=" + username + "\tpassword=" + password + "\thobby=" + Arrays.toString(hobby));
+        return "controllerparams";
+    }
+}
+```
+
+
+
+### 4、@RequestHeader
+
+@RequestHeader是将请求头信息和控制器方法的形参创建映射关系
+
+@RequestHeader注解一共有三个属性：value、required、defaultValue，用法同@RequestParam
+
 # 五、域对象共享数据
 
 # 六、SpringMVC的视图
