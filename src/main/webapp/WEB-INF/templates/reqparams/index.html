@@ -28,6 +28,18 @@
         <input type="submit" value="submit">
     </form>
 
-    <a th:href="@{/reqHeaderTest1}">头部和形参映的射器</a>
+    <a th:href="@{/reqHeaderTest1}">头部和形参映的射器</a></br>
+
+    <a th:href="@{/reqCookie1}">请求cookie</a></br>
+
+    <form th:action="@{/pojotest1}" method="post">
+        <label>通过POJO请求参数</label></br>
+        username:<input type="text" name="username"></br>
+        password:<input type="password" name="password"></br>
+        age:<input type="text" name="age"></br>
+        sex:<input type="checkbox" name="sex" value="man">man
+        <input type="checkbox" name="hobby" value="women">women
+        <input type="submit" value="submit">
+    </form></br>
 </body>
 </html>

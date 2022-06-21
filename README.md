@@ -625,6 +625,66 @@ public class RequestParamTest1 {
 
 @RequestHeader注解一共有三个属性：value、required、defaultValue，用法同@RequestParam
 
+```java
+@Controller
+public class ReqHeaderTest1 {
+    @RequestMapping("/reqHeaderTest1")
+    public String reqHeaderTest1(
+            @RequestHeader(value = "hostheader",defaultValue = "null") String host){
+        return "reqheaderparam";
+    }
+}
+```
+
+### 5、@CookieValue
+
+@CookieValue是将cookie数据和控制器方法的形参创建映射关系
+
+@CookieValue注解一共有三个属性：value、required、defaultValue，用法同@RequestParam
+
+```java
+@Controller
+public class ReqCookie1 {
+    @RequestMapping("/reqCookie1")
+    public String reqCookie1(@CookieValue("JSESSIONID") String JSESSIONID){
+        System.out.println("JSESSIONID:"+JSESSIONID);
+        return "cookie";
+    }
+}
+```
+
+### 6、通过POJO获取请求参数
+
+可以在控制器方法的形参位置设置一个实体类类型的形参，此时若浏览器传输的请求参数的参数名和实体类中的属性名一致，那么请求参数就会为此属性赋值
+
+```html
+<form th:action="@{/pojotest1}" method="post">
+        <label>通过POJO请求参数</label></br>
+        username:<input type="text" name="username"></br>
+        password:<input type="password" name="password"></br>
+        age:<input type="text" name="age"></br>
+        sex:<input type="checkbox" name="sex" value="man">man
+        <input type="checkbox" name="hobby" value="women">women
+        <input type="submit" value="submit">
+    </form></br>
+```
+
+```java
+@Controller
+public class POJOTest1 {
+    @RequestMapping("/pojotest1")
+    public String pOJOTest1(User user) {
+        System.out.println(user);
+        return "pojo";
+        //注意User对象需要设置有参和无参构造,以及set和get方法(bean的相关知识)
+        //User{username='admin', password='admin', sex='null', age=1}
+    }
+}
+
+```
+
+
+
 # 五、域对象共享数据
 
 # 六、SpringMVC的视图
