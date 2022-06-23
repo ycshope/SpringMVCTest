@@ -683,7 +683,49 @@ public class POJOTest1 {
 
 ```
 
+### 7、解决获取请求参数的乱码问题
 
+解决get乱码问题:tomcat配置文件server.xml修改编码即可
+
+```xml
+<Connector port="28080" URIEncoding="UTF-8" protocol="HTTP/1.1"
+           connectionTimeout="20000"
+           redirectPort="8443" />
+```
+
+解决post乱码问题:
+
+解决获取请求参数的乱码问题，可以使用SpringMVC提供的编码过滤器CharacterEncodingFilter，但是必须在web.xml中进行注册
+
+```xml
+    <!-- 配置SpringMVC的编码过滤器   -->
+    <filter>
+        <filter-name>CharacterEncodingFilter</filter-name>
+        <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+        <!--   请求的编码格式UTF-8     -->
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+        <!--   返回编码也用utf-8     -->
+        <init-param>
+            <param-name>forceResponseEncoding</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>CharacterEncodingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+```
+
+
+
+> 注：
+>
+> 必须在获取参数之前就进行转码,启动顺序是:**监听器->filter->servlet->DispatcherServlet->Controller**。所以在Controller修改转码没有用
+>
+> SpringMVC中处理编码的过滤器一定要配置到其他过滤器之前，否则无效
 
 # 五、域对象共享数据
 

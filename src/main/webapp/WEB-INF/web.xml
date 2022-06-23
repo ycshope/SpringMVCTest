@@ -4,6 +4,27 @@
 
 <web-app>
     <display-name>Archetype Created Web Application</display-name>
+
+    <!-- 配置SpringMVC的编码过滤器   -->
+    <filter>
+        <filter-name>CharacterEncodingFilter</filter-name>
+        <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+        <!--   请求的编码格式UTF-8     -->
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+        <!--   返回编码也用utf-8     -->
+        <init-param>
+            <param-name>forceResponseEncoding</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>CharacterEncodingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
     <!---配置SpringMVC的前端控制器,对浏览器发送的请求统一进行处理:类似django的settings.py-->
     <servlet>
         <servlet-name>SpringMVCTest</servlet-name>
@@ -41,4 +62,5 @@
        -->
         <url-pattern>/</url-pattern>
     </servlet-mapping>
+
 </web-app>
