@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <title>Success</title>
+</head>
+<body>
+    <h1>Success</h1>
+    <!-- 域对象共享数据   -->
+    <p th:text="${testScope}"></p>
+    <p th:text="${session.testScope}"></p>
+    <p th:text="${application.testScope}"></p>
+    <a th:href="@{/}">return to index</a>
+
+</body>
+</html>

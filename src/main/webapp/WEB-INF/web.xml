@@ -39,12 +39,19 @@
 
 
             <!--  HelloSpringMVC
-              <param-value>classpath:springMVC.xml</param-value>-->
+              <param-value>classpath:springMVC.xml</param-value>
+              -->
 
             <!--    RequestMapping
-            <param-value>classpath:reqMapping.xml</param-value> -->
+            <param-value>classpath:reqMapping.xml</param-value>
+            -->
 
+            <!-- 请求参数
             <param-value>classpath:reqParams.xml</param-value>
+            -->
+
+            <!-- 域共享对象 -->
+            <param-value>classpath:scopeCtler.xml</param-value>
         </init-param>
         <!--
             作为框架的核心组件,在启动过程中有大量的初始化操作要做

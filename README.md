@@ -729,6 +729,122 @@ public class POJOTest1 {
 
 # 五、域对象共享数据
 
+### 1、使用ServletAPI向request域对象共享数据
+
+```java
+@Controller
+public class ServletAPItest1 {
+    @RequestMapping("/servletAPItest1")
+    public String servletAPItest1(HttpServletRequest request){
+        request.setAttribute("testScope","Hello servletAPIctx");
+        return "servletapi";
+    }
+}
+```
+
+```html
+<!-- 通过servletAPI向request域对象共享数据   -->
+    <p th:text="${testScope}"></p>
+```
+
+### 2、使用ModelAndView向request域对象共享数据
+
+```java
+@Controller
+public class ModelAndViewTest1 {
+    @RequestMapping(value = "/modelAndViewTest1")
+    public ModelAndView modelAndViewTest1() {
+        /**
+         * ModelAndView有Model和View的功能被
+         * Model主要用于请求域共享数据
+         * View主要用于返回视图,实现页面跳转
+         */
+        ModelAndView mav = new ModelAndView();
+        //向请求域共享数据
+        mav.addObject("testScope", "Hello ModelAndViewCtx");
+        //设置视图,实现页面跳转
+        mav.setViewName("mav1");
+        return mav;
+    }
+}
+
+```
+
+### 3、使用Model向request域对象共享数据
+
+```java
+@Controller
+public class ModelTest1 {
+    @RequestMapping("/modeltest1")
+    public String modeltest(Model model) {
+        model.addAttribute("testScope", "Hello Model");
+        return "success";
+    }
+}
+```
+
+### 4、使用map向request域对象共享数据
+
+```java
+@Controller
+public class MapTest1 {
+    @RequestMapping(value = "/mapTest1")
+    public String mapTest1(Map<String, Object> map) {
+        map.put("testScope","Hello Map");
+        return "success";
+    }
+}
+
+```
+
+
+
+### 5、使用ModelMap向request域对象共享数据
+
+```java
+@Controller
+public class ModelMapTest1 {
+    @RequestMapping("/modelMapTest1")
+    public String modelMapTest1(ModelMap modelMap){
+        modelMap.addAttribute("testScope","Hello ModelMap");
+        return "success";
+    }
+}
+```
+
+### 6、Model、ModelMap、Map的关系
+
+Model、ModelMap、Map类型的参数其实本质上都是 BindingAwareModelMap 类型的
+
+```java
+public interface Model{}
+public class ModelMap extends LinkedHashMap<String, Object> {}
+public class ExtendedModelMap extends ModelMap implements Model {}
+public class BindingAwareModelMap extends ExtendedModelMap {}
+```
+
+### 7、向session域共享数据
+
+```java
+@Controller
+public class SessionTest1 {
+    @RequestMapping(value = "/sessionTest1")
+    public String sessionTest1(HttpSession session){
+        session.setAttribute("testScope","Hello Session");
+        return "success";
+    }
+}
+
+```
+
+```html
+<p th:text="${session.testScope}"></p>
+```
+
+
+
+### 8、向application域共享数据
+
 # 六、SpringMVC的视图
 
 # 七、RESTful

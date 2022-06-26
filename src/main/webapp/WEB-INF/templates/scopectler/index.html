@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to ScopeController Index</title>
+</head>
+<body>
+    <h1>Welcome to ScopeController Index</h1>
+    <a th:href="@{/servletAPItest1}">使用ServletAPI向request域对象共享数据</a></br>
+    <a th:href="@{/modelAndViewTest1}">使用ModelAndView向request域对象共享数据</a></br>
+    <a th:href="@{/modeltest1}">使用Model向request域对象共享数据</a></br>
+    <a th:href="@{/mapTest1}">使用map向request域对象共享数据</a></br>
+    <a th:href="@{/modelMapTest1}">使用ModelMap向request域对象共享数据</a></br>
+    <a th:href="@{/sessionTest1}">向session域共享数据</a></br>
+    <a th:href="@{/applicationTest1}">向application域共享数据</a></br>
+
+
+</body>
+</html>
