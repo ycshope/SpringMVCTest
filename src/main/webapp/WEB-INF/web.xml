@@ -50,8 +50,13 @@
             <param-value>classpath:reqParams.xml</param-value>
             -->
 
-            <!-- 域共享对象 -->
+            <!-- 域共享对象
             <param-value>classpath:scopeCtler.xml</param-value>
+            -->
+
+            <!--  SpringMVC的视图 -->
+            <param-value>classpath:viewCtler.xml</param-value>
+
         </init-param>
         <!--
             作为框架的核心组件,在启动过程中有大量的初始化操作要做

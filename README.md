@@ -747,7 +747,7 @@ public class ServletAPItest1 {
     <p th:text="${testScope}"></p>
 ```
 
-### 2、使用ModelAndView向request域对象共享数据
+### 2、使用ModelAndView向request域对象共享数据(难点)
 
 ```java
 @Controller
@@ -845,7 +845,107 @@ public class SessionTest1 {
 
 ### 8、向application域共享数据
 
-# 六、SpringMVC的视图
+```java
+@Controller
+public class ApplicationTest1 {
+    @RequestMapping("/applicationTest1")
+    public String applicationTest1(HttpSession session){
+        ServletContext application = session.getServletContext();
+        //整个项目都生效
+        application.setAttribute("testScope","Hello Application");
+        return "success";
+    }
+}
+```
+
+
+
+# 六、SpringMVC的视图(难点)
+
+SpringMVC中的视图是View接口，视图的作用渲染数据，将模型Model中的数据展示给用户
+
+SpringMVC视图的种类很多，默认有转发视图和重定向视图
+
+当工程引入jstl的依赖，转发视图会自动转换为JstlView
+
+若使用的视图技术为Thymeleaf，在SpringMVC的配置文件中配置了Thymeleaf的视图解析器，由此视图解析器解析之后所得到的是ThymeleafView
+
+### 1、ThymeleafView
+
+当控制器方法中所设置的视图名称没有任何前缀时，此时的视图名称会被SpringMVC配置文件中所配置的视图解析器解析，视图名称拼接视图前缀和视图后缀所得到的最终路径，会通过转发的方式实现跳转
+
+### 2、转发视图
+
+SpringMVC中默认的转发视图是InternalResourceView
+
+SpringMVC中创建转发视图的情况：
+
+当控制器方法中所设置的视图名称以"forward:"为前缀时，创建InternalResourceView视图，此时的视图名称不会被SpringMVC配置文件中所配置的视图解析器解析，而是会将前缀"forward:"去掉，剩余部分作为最终路径通过转发的方式实现跳转
+
+例如"forward:/"，“forward:/employee”
+
+```java
+@Controller
+public class ForwardViewTest1 {
+    @RequestMapping("/forwardViewTest1")
+    public String forwardViewTest1(){
+        //转发给thymeleafViewTest1
+        return "forward:/thymeleafViewTest1";
+    }
+}
+
+```
+
+### 3、重定向视图
+
+SpringMVC中默认的重定向视图是RedirectView
+
+当控制器方法中所设置的视图名称以"redirect:"为前缀时，创建RedirectView视图，此时的视图名称不会被SpringMVC配置文件中所配置的视图解析器解析，而是会将前缀"redirect:"去掉，剩余部分作为最终路径通过重定向的方式实现跳转
+
+例如"redirect:/"，“redirect:/employee”
+
+```java
+@Controller
+public class RedirectViewTest1 {
+    @RequestMapping(value = "/redirectViewTest1")
+    public String redirectViewTest1(){
+        return "redirect:/thymeleafViewTest1";
+    }
+}
+```
+
+> 注：
+>
+> 重定向/转发视图在解析时，会先将redirect:前缀去掉，然后会判断剩余部分是否以/开头，若是则会自动拼接上下文路径
+
+### 转发和重定向的区别
+
+- 浏览器:重定向是两次(第一次servlet,第二次重定向的地址)请求,转发是一次(第一次浏览器,第二次内部请求)请求
+- 地址栏:重定向是的重定向后的地址,转发是原来的地址
+- 域数据:重定向无法获得请求域的数据(两个request),转发可以(因为是同一个request对象)
+- webinfo下的资源:重定向无法获取,转发可以(webinfo下的资源具有安全性,只能通过服务器内部资源访问,不能通过浏览器/外部访问)
+- 跨域:重定向可以跨域(domin),转发不能
+
+### 4、视图控制器view-controller
+
+当控制器方法中，仅仅用来实现页面跳转(不需要进行业务处理)，即只需要设置视图名称时，可以将处理器方法使用view-controller标签进行表示
+
+```xml
+<beans>
+    ...
+    <!--
+        path: 设置处理的请求地址
+        view: 设置请求地址所对应的视图名称
+     -->
+    <mvc:view-controller path="/" view-name="index"></mvc:view-controller>
+    <!--当SpringMVC中设置任何一个view-controller时，
+    其他控制器中的请求映射将全部失效，
+    此时需要在SpringMVC的核心配置文件中设置开启mvc注解驱动的标签：-->
+    <!--  开启MVC的注解驱动  -->
+    <mvc:annotation-driven />
+
+</beans>
+```
 
 # 七、RESTful
 
