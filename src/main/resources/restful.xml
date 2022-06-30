@@ -33,13 +33,10 @@
         </property>
     </bean>
     <!--
-        path: 设置处理的请求地址
-        view: 设置请求地址所对应的视图名称
+       配置视图控制器
      -->
     <mvc:view-controller path="/" view-name="index"></mvc:view-controller>
-    <!--当SpringMVC中设置任何一个view-controller时，
-    其他控制器中的请求映射将全部失效，
-    此时需要在SpringMVC的核心配置文件中设置开启mvc注解驱动的标签：-->
+
     <!--  开启MVC的注解驱动  -->
     <mvc:annotation-driven />
 

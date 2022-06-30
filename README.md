@@ -1168,6 +1168,38 @@ public class EmployeeController {
 }
 ```
 
+### 2、功能清单
+
+| 功能                | URL 地址    | 请求方式 |
+| ------------------- | ----------- | -------- |
+| 访问首页√           | /           | GET      |
+| 查询全部数据√       | /employee   | GET      |
+| 删除√               | /employee/2 | DELETE   |
+| 跳转到添加数据页面√ | /toAdd      | GET      |
+| 执行保存√           | /employee   | POST     |
+| 跳转到更新数据页面√ | /employee/2 | GET      |
+| 执行更新√           | /employee   | PUT      |
+
+### 3、具体功能：访问首页
+
+##### a>配置view-controller
+
+```xml
+    <!--
+       配置视图控制器
+     -->
+    <mvc:view-controller path="/" view-name="index"></mvc:view-controller>
+
+    <!--  开启MVC的注解驱动  -->
+    <mvc:annotation-driven />
+```
+
+##### b>创建页面
+
+```html
+<a th:href="@{/employee}">employee information</a></br>
+```
+
 # 九、文件上传和下载
 
 # 十、拦截器
