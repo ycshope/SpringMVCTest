@@ -1200,6 +1200,55 @@ public class EmployeeController {
 <a th:href="@{/employee}">employee information</a></br>
 ```
 
+### 4、具体功能：查询所有员工数据
+
+##### a>控制器方法
+
+```java
+/域对象共享数据:model
+@GetMapping(value = "/employee")
+public String getEmpList(Model model) {
+    Collection<Employee> empList = employeeDao.getAll();
+    model.addAttribute("empList", empList);
+    return "employee_list";
+}
+```
+
+##### b>创建employee_list.html
+
+```html
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <title>Employee Info</title>
+</head>
+<body>
+    <table border="1" cellpadding="0" cellspacing="0" style="text-align: center;">
+        <tr>
+            <th colspan="4">Employee Info</th>
+        </tr>
+        <tr>
+            <th>id</th>
+            <th>lastname</th>
+            <th>email</th>
+            <th>gender</th>
+        </tr>
+        <!-- 类似django的template语法 for-->
+        <tr th:each="emp:${empList}">
+            <td th:text="${emp.id}"></td>
+            <td th:text="${emp.lastName}"></td>
+            <td th:text="${emp.email}"></td>
+            <td th:text="${emp.gender}"></td>
+        </tr>
+    </table>
+    <a th:href="@{/}">Index</a>
+</body>
+</html>
+```
+
+
+
 # 九、文件上传和下载
 
 # 十、拦截器
