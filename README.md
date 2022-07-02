@@ -1295,6 +1295,92 @@ public String getEmpList(Model model) {
 </script>
 ```
 
+### 6、具体功能：跳转到添加数据页面
+
+##### a>配置view-controller
+
+```xml
+<mvc:view-controller path="/toAdd" view-name="employee_add"></mvc:view-controller>
+```
+
+
+
+##### b>创建employee_add.html
+
+```html
+<form th:action="@{/employee}" method="post"></br>
+    lastname:<input type="text" name="lastName"></br>
+    email:<input type="text" name="email"></br>
+    gender:<input type="radio" name="gender" value="1">male
+    <input type="radio" name="gender" value="0">female</br>
+    <input type="submit" value="add"></br>
+</form>
+```
+
+### 7、具体功能：执行保存
+
+##### a>控制器方法
+
+```java
+@PostMapping(value = "/employee")
+public String addEmp(Employee emp){
+    employeeDao.save(emp);
+    return "redirect:/employee";
+}
+```
+
+### 8、具体功能：跳转到更新数据页面
+
+##### a>修改超链接
+
+```html
+<a th:href="@{'/employee/'+${emp.id}}">update</a>
+```
+
+##### b>控制器方法
+
+```java
+@PutMapping(value = "/employee/{id}")
+public String updateEmp(@PathVariable("id") Integer id, Employee emp) {
+    Employee employee = employeeDao.get(id);
+    if (employee.getId().equals(id)){
+        employeeDao.save(emp);
+    }
+    return "redirect:/employee";
+}
+```
+
+##### c>创建employee_update.html
+
+```html
+    <form method="post"></br>
+        <input type="hidden" name="_method" value="put">
+        lastname:<input type="text" name="lastName" th:value="${emp.lastName}"></br>
+        email:<input type="text" name="email" th:value="${emp.email}"></br>
+        <!-- th:field 自动选中gender的属性       -->
+        gender:<input type="radio" name="gender" value="1" th:field="${emp.gender}">male
+        <input type="radio" name="gender" value="0" th:field="${emp.gender}">female</br>
+        <input type="submit" value="update"></br>
+    </form>
+```
+
+
+
+### 9、具体功能：执行更新
+
+##### a>控制器方法
+
+```java
+@PutMapping(value = "/employee/{id}")
+public String updateEmp(@PathVariable("id") Integer id, Employee emp) {
+    Employee employee = employeeDao.get(id);
+    if (employee.getId().equals(id)){
+        employeeDao.save(emp);
+    }
+    return "redirect:/employee";
+}
+```
+
 # 九、文件上传和下载
 
 # 十、拦截器

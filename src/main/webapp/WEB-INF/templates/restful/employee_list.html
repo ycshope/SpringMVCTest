@@ -16,6 +16,7 @@
             <th>lastname</th>
             <th>email</th>
             <th>gender</th>
+            <th>options(<a th:href="@{/toAdd}">add</a>)</th>
         </tr>
         <!-- 类似django的template语法 for-->
         <tr th:each="emp:${empList}">
@@ -28,11 +29,9 @@
                 <!--  错误写法 /employee/$%7emp.id%7          -->
                 <a th:href="@{/employee/${emp.id}}">error delete</a>
                 <!--  正确写法1           -->
-<!--                <a @chick="deleteEmployee()"  th:href="@{/employee/}+${emp.id}">delete</a>-->
                 <a class="get2post" th:href="@{/employee/}+${emp.id}">delete</a>
-<!--                &lt;!&ndash;  正确写法2           &ndash;&gt;-->
-<!--                <a @chick="deleteEmployee()"  th:href="@{'/employee/'+${emp.id}}">delete</a>-->
-                <a class="get2post" th:href="@{'/employee/'+${emp.id}}">delete</a>
+                <!--  正确写法2           -->
+                <a th:href="@{'/employee/'+${emp.id}}">update</a>
             </td>
         </tr>
     </table>

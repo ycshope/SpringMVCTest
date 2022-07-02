@@ -25,8 +25,34 @@ public class EmployeeController {
     }
 
     @DeleteMapping(value = "/employee/{id}")
-    public String delEmp(@PathVariable Integer id){
+    //默认是选中和自己相同的参数
+    public String delEmp(@PathVariable Integer id) {
         employeeDao.delete(id);
         return "redirect:/employee";
     }
+
+    @RequestMapping(value = "/employee", method = {RequestMethod.POST, RequestMethod.PUT})
+    public String addEmp(Employee emp) {
+        employeeDao.save(emp);
+        return "redirect:/employee";
+    }
+
+    // 拿到的对象需要传递到共享域中(/employee_update)
+    @GetMapping(value = "/employee/{id}")
+    public String getEmp(@PathVariable("id") Integer id, Model model) {
+        Employee employee = employeeDao.get(id);
+        //为什么delete和save不需要?
+        model.addAttribute("emp", employee);
+        return "employee_update";
+    }
+
+    @PutMapping(value = "/employee/{id}")
+    public String updateEmp(@PathVariable("id") Integer id, Employee emp) {
+        Employee employee = employeeDao.get(id);
+        if (employee.getId().equals(id)){
+            employeeDao.save(emp);
+        }
+        return "redirect:/employee";
+    }
+
 }
