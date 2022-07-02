@@ -812,7 +812,7 @@ public class ModelMapTest1 {
 }
 ```
 
-### 6、Model、ModelMap、Map的关系
+### 6、Model、ModelMap、Map的关系()
 
 Model、ModelMap、Map类型的参数其实本质上都是 BindingAwareModelMap 类型的
 
@@ -1247,7 +1247,53 @@ public String getEmpList(Model model) {
 </html>
 ```
 
+### 5、具体功能：删除
 
+##### a>创建处理delete请求方式的表单
+
+```html
+ <!--  发送/employee/$emp.id           -->
+                <!--  错误写法 /employee/$%7emp.id%7          -->
+                <a th:href="@{/employee/${emp.id}}">error delete</a>
+                <!--  正确写法1           -->
+                <a th:href="@{/employee/}+${emp.id}">delete</a>
+                <!--  正确写法2           -->
+                <a th:href="@{'/employee/'+${emp.id}}">delete</a>
+    <form id="deleteForm" method="post">
+        <input type="hidden" name="_method" value="delete">
+    </form>
+```
+
+##### b>删除超链接绑定点击事件
+
+引入jquery
+
+```html
+<script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+```
+
+删除超链接
+
+```html
+<a class="get2post" th:href="@{/employee/}+${emp.id}">delete</a>
+```
+
+通过jquery处理点击事件
+
+```html
+<script>
+    $(document).ready(function(){
+        $(".get2post").click(function(event){
+            //阻止超链接的默认跳转行为（先请求后发送表单）
+            event.preventDefault(); 
+            var deleteForm = document.getElementById("deleteForm");
+            //修改deleteForm的action
+            deleteForm.action = event.target.href;
+            deleteForm.submit();
+        });
+    });
+</script>
+```
 
 # 九、文件上传和下载
 

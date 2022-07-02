@@ -5,8 +5,7 @@ import com.kali.restfulDemo.dao.EmployeeDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
 
@@ -23,5 +22,11 @@ public class EmployeeController {
         Collection<Employee> empList = employeeDao.getAll();
         model.addAttribute("empList", empList);
         return "employee_list";
+    }
+
+    @DeleteMapping(value = "/employee/{id}")
+    public String delEmp(@PathVariable Integer id){
+        employeeDao.delete(id);
+        return "redirect:/employee";
     }
 }

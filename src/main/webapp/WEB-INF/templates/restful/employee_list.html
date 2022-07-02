@@ -2,12 +2,14 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
+<!--    <script src="https://unpkg.com/vue@2.6.14/dist/vue.min.js"></script>-->
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
     <title>Employee Info</title>
 </head>
 <body>
-    <table border="1" cellpadding="0" cellspacing="0" style="text-align: center;">
+    <table id="dataTable" border="1" cellpadding="0" cellspacing="0" style="text-align: center;">
         <tr>
-            <th colspan="4">Employee Info</th>
+            <th colspan="5">Employee Info</th>
         </tr>
         <tr>
             <th>id</th>
@@ -21,8 +23,49 @@
             <td th:text="${emp.lastName}"></td>
             <td th:text="${emp.email}"></td>
             <td th:text="${emp.gender}"></td>
+            <td>
+                <!--  发送/employee/$emp.id           -->
+                <!--  错误写法 /employee/$%7emp.id%7          -->
+                <a th:href="@{/employee/${emp.id}}">error delete</a>
+                <!--  正确写法1           -->
+<!--                <a @chick="deleteEmployee()"  th:href="@{/employee/}+${emp.id}">delete</a>-->
+                <a class="get2post" th:href="@{/employee/}+${emp.id}">delete</a>
+<!--                &lt;!&ndash;  正确写法2           &ndash;&gt;-->
+<!--                <a @chick="deleteEmployee()"  th:href="@{'/employee/'+${emp.id}}">delete</a>-->
+                <a class="get2post" th:href="@{'/employee/'+${emp.id}}">delete</a>
+            </td>
         </tr>
     </table>
     <a th:href="@{/}">Index</a>
+
+    <form id="deleteForm" method="post">
+        <input type="hidden" name="_method" value="delete">
+    </form>
 </body>
+<script>
+    $(document).ready(function(){
+        $(".get2post").click(function(event){
+            event.preventDefault();
+            var deleteForm = document.getElementById("deleteForm");
+            deleteForm.action = event.target.href;
+            deleteForm.submit();
+        });
+    });
+</script>
+<!--<script type="text/javascript">-->
+<!--    var vue = new Vue({-->
+<!--        el: '#dataTable',-->
+<!--        data: {},-->
+<!--        methods: {-->
+<!--            //event表示当前事件-->
+<!--            deleteEmployee: function (event) {-->
+<!--                var deleteForm = document.getElementById("deleteForm");-->
+<!--                deleteForm.action = event.target.href;-->
+<!--                deleteForm.submit();-->
+<!--                //阻止超链接的默认跳转行为（先请求后发送表单）-->
+<!--                event.preventDefault();-->
+<!--            }-->
+<!--        }-->
+<!--    })-->
+<!--</script>-->
 </html>
