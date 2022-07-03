@@ -1715,3 +1715,10 @@ preHandle()返回false和它之前的拦截器的preHandle()都会执行，postH
 # 十三、注解配置SpringMVC
 
 # 十四、SpringMVC执行流程
+
+bp拓展
+
+https://www.mad-coding.cn/2019/10/04/burpsuite%E5%B8%B8%E7%94%A8%E6%8F%92%E4%BB%B6%E6%8E%A8%E8%8D%90%E4%B8%8E%E4%BD%BF%E7%94%A8/
+https://blog.csdn.net/qq_27446553/article/details/78951881
+https://blog.csdn.net/weixin_50464560/article/details/120495249
+https://cloud.tencent.com/developer/article/1015187
