@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        ">
+    <!-- 自动扫描包   -->
+    <context:component-scan base-package="com.kali.handle"></context:component-scan>
+
+    <!-- 配置thymeleaf视图解析器 -->
+    <bean id="viewResolver" class="org.thymeleaf.spring5.view.ThymeleafViewResolver">
+        <property name="order" value="1"/>
+        <property name="characterEncoding" value="UTF-8"/>
+        <property name="templateEngine">
+            <bean class="org.thymeleaf.spring5.SpringTemplateEngine">
+                <property name="templateResolver">
+                    <bean class="org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver">
+
+                        <!-- 视图前缀 -->
+                        <property name="prefix" value="/WEB-INF/templates/handle/"/>
+
+                        <!-- 视图后缀 -->
+                        <property name="suffix" value=".html"/>
+                        <property name="templateMode" value="HTML5"/>
+                        <property name="characterEncoding" value="UTF-8"/>
+                    </bean>
+                </property>
+            </bean>
+        </property>
+    </bean>
+    <!--
+       配置视图控制器
+     -->
+    <mvc:view-controller path="/" view-name="index"></mvc:view-controller>
+
+    <!--开放对静态资源的访问-->
+    <mvc:default-servlet-handler/>
+
+    <!--  开启MVC的注解驱动  -->
+    <mvc:annotation-driven/>
+
+    <!--  配置拦截器  -->
+    <mvc:interceptors>
+        <!--  方式1:指定某个bean为拦截器      -->
+        <!--        <bean class="com.kali.handle.interceptor.InterceptorDemo1"></bean>-->
+        <!--  方式2:根据beanid选择拦截器      -->
+        <!--        <ref bean="interceptorDemo1"></ref>-->
+        <!--  以上两种配置方式都是对DispatcherServlet所处理的所有请求进行拦截-->
+        <mvc:interceptor>
+            <!--
+            仅对任意一级目录进行拦截
+            <mvc:mapping path="/*"/>
+            -->
+            <!-- 对任意多级目录进行拦截  -->
+            <mvc:mapping path="/**"/>
+            <!-- 首页不进行拦截  -->
+            <mvc:exclude-mapping path="/"/>
+            <ref bean="interceptorDemo1"></ref>
+        </mvc:interceptor>
+        <!--  第二个拦截器      -->
+        <mvc:interceptor>
+            <mvc:mapping path="/**"/>
+            <mvc:exclude-mapping path="/"/>
+            <ref bean="interceptorDemo2"></ref>
+        </mvc:interceptor>
+    </mvc:interceptors>
+</beans>

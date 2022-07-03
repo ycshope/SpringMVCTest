@@ -1381,12 +1381,337 @@ public String updateEmp(@PathVariable("id") Integer id, Employee emp) {
 }
 ```
 
-# 九、文件上传和下载
+### ex:处理静态请求的过程
 
-# 十、拦截器
+tomcat的web.xml的配置
 
-# 十一、异常处理器
+```xml
+#servlet映射器
+<servlet>
+    <servlet-name>default</servlet-name>
+    <!--底层是调用默认的servlet处理-->
+    <servlet-class>org.apache.catalina.servlets.DefaultServlet</servlet-class>
+    ...
+    <load-on-startup>1</load-on-startup>
+</servlet>
+ <servlet>
+        <servlet-name>jsp</servlet-name>
+        <servlet-class>org.apache.jasper.servlet.JspServlet</servlet-class>
+      	...
+        <load-on-startup>3</load-on-startup>
+    </servlet>
+<servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
 
-# 十二、注解配置SpringMVC
+    <servlet-mapping>
+        <servlet-name>jsp</servlet-name>
+        <url-pattern>*.jsp</url-pattern>
+        <url-pattern>*.jspx</url-pattern>
+    </servlet-mapping>
+	...
+#mime-type映射器
+    <mime-mapping>
+        <extension>tar</extension>
+        <mime-type>application/x-tar</mime-type>
+    </mime-mapping>
+	...
+```
 
-# 十三、SpringMVC执行流程
+**原则1:请求就近处理**
+
+请求优先给工程的web.xml(dispatchservlet)处理,然后才轮到tomcat的web.xml
+
+需要做如下配置
+
+```xml
+<!--开放对静态资源的访问-->
+<!--项目的dispatch-servlet处理不了的交给default-servlet处理(仅仅是静态资源)-->
+<mvc:default-servlet-handler/>
+
+<!--开启mvc注解驱动-->
+<!--除了静态资源,其他处理不了的也交给default-servlet处理-->
+<mvc:annotation-driven />
+```
+
+# 九、HttpMessageConverter
+
+HttpMessageConverter，报文信息转换器，将请求报文转换为Java对象，或将Java对象转换为响应报文
+
+HttpMessageConverter提供了两个注解和两个类型：@RequestBody，@ResponseBody，RequestEntity，
+
+ResponseEntity
+
+### 1、@RequestBody
+
+@RequestBody可以获取请求体，需要在控制器方法设置一个形参，使用@RequestBody进行标识，当前请求的请求体就会为当前注解所标识的形参赋值
+
+```html
+    <form th:action="@{/reqBodyDemo1}" method="post"></br>
+        lastname:<input type="text" name="lastName"></br>
+        email:<input type="text" name="email"></br>
+        <input type="submit" value="submit"></br>
+    </form>
+```
+
+```java
+@Controller
+public class ReqBodyDemo1 {
+    @PostMapping("/reqBodyDemo1")
+    public ModelAndView reqBodyDemo1(@RequestBody String reqBody) {
+        System.out.println(reqBody);
+        ModelAndView mav = new ModelAndView();
+        mav.addObject("reqBody", reqBody);
+        mav.setViewName("success");
+        return mav;
+    }
+}
+```
+
+输出结果：
+
+lastName=admin&email=admin%40a.com
+
+### 2、RequestEntity
+
+RequestEntity封装请求报文的一种类型，需要在控制器方法的形参中设置该类型的形参，当前请求的请求报文就会赋值给该形参，可以通过getHeaders()获取请求头信息，通过getBody()获取请求体信息
+
+```java
+@Controller
+public class ReqEttDemo1 {
+    @PostMapping(value = "/reqEttDemo1")
+    public ModelAndView reqEttDemo1(RequestEntity<String> reqEtt){
+        ModelAndView mav = new ModelAndView();
+        mav.addObject("reqBody",reqEtt.getBody());
+        mav.addObject("reqHeader",reqEtt.getHeaders());
+        mav.setViewName("success");
+        return mav;
+    }
+}
+```
+
+输出结果：
+requestHeader:[host:“localhost:8080”, connection:“keep-alive”, content-length:“27”, cache-control:“max-age=0”, sec-ch-ua:"" Not A;Brand";v=“99”, “Chromium”;v=“90”, “Google Chrome”;v=“90"”, sec-ch-ua-mobile:"?0", upgrade-insecure-requests:“1”, origin:“http://localhost:8080”, user-agent:“Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36”]
+
+### 3、@ResponseBody
+
+@ResponseBody用于标识一个控制器方法，可以将该方法的返回值直接作为响应报文的响应体响应到浏览器
+
+```java
+@Controller
+public class RspBodyDemo1 {
+    //添加@ResponseBody后不再先向View做解析后返回给前端,而是直接输出内容到前端
+    @GetMapping("/rspBodyDemo1")
+    @ResponseBody
+    public String rspBodyDemo1(){
+        return "Hello rspBodyDemo1!</br><a href='/SpringMVCTest'>Index</a>";
+    }
+}
+```
+
+### 4、SpringMVC处理json
+
+@ResponseBody处理json的步骤：
+
+a>导入jackson的依赖
+
+```xml
+<!--导入json处理器-->
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-databind</artifactId>
+    <version>2.12.1</version>
+</dependency>
+```
+
+b>在SpringMVC的核心配置文件中开启mvc的注解驱动，此时在HandlerAdaptor中会自动装配一个消息转换器：MappingJackson2HttpMessageConverter，可以将响应到浏览器的Java对象转换为Json格式的字符串
+
+```xml
+<mvc:annotation-driven />
+```
+
+c>在处理器方法上使用@ResponseBody注解进行标识
+
+d>将Java对象直接作为控制器方法的返回值返回，就会自动转换为Json格式的字符串
+
+```java
+@Controller
+public class RspJsonDemo1 {
+    @GetMapping("/rspJsonDemo1")
+    @ResponseBody
+    public User rspJsonDemo1(){
+        return new User(1,"Hello Json");
+    }
+}
+```
+
+浏览器的页面中展示的结果：
+
+```html
+{"id":1,"name":"Hello Json"}
+```
+
+### 5、SpringMVC处理ajax
+
+a>请求超链接：
+
+```html
+<a class="testajax" th:href="@{/ajaxDemo1}">Ajax</a>
+```
+
+b>通过jquery处理点击事件：
+
+```html
+<script>
+    $(document).ready(function(){
+        $(".testajax").click(function(event){
+            event.preventDefault();
+            $.post(event.target.href,
+             {
+                username:"admin",
+                password:"password"
+             },
+            function(data,status){
+			alert(data);
+		    });
+        });
+    });
+</script>
+```
+
+c>控制器方法：
+
+```java
+@Controller
+public class AjaxDemo1 {
+    @PostMapping("/ajaxDemo1")
+    @ResponseBody
+    public String ajaxDemo1(String username, String password) {
+        System.out.println("username:" + username + "\npassword:" + password);
+        return "Hello Ajax";
+    }
+}
+```
+
+### 6、@RestController注解(重点)
+
+@RestController注解是springMVC提供的一个复合注解，标识在控制器的类上，就相当于为类添加了@Controller注解，并且为其中的**每个方法**添加了@ResponseBody注解
+
+### 7、ResponseEntity
+
+ResponseEntity用于控制器方法的返回值类型，该控制器方法的返回值就是响应到浏览器的响应报文
+
+使用ResponseEntity实现下载文件的功能
+
+```java
+@RequestMapping("/testDown")
+public ResponseEntity<byte[]> testResponseEntity(HttpSession session) throws IOException {
+    //获取ServletContext对象
+    ServletContext servletContext = session.getServletContext();
+    //获取服务器中文件的真实路径
+    String realPath = servletContext.getRealPath("/static/img/1.jpg");
+    //创建输入流
+    InputStream is = new FileInputStream(realPath);
+    //创建字节数组
+    byte[] bytes = new byte[is.available()];
+    //将流读到字节数组中
+    is.read(bytes);
+    //创建HttpHeaders对象设置响应头信息
+    MultiValueMap<String, String> headers = new HttpHeaders();
+    //设置要下载方式以及下载文件的名字
+    headers.add("Content-Disposition", "attachment;filename=1.jpg");
+    //设置响应状态码
+    HttpStatus statusCode = HttpStatus.OK;
+    //创建ResponseEntity对象
+    ResponseEntity<byte[]> responseEntity = new ResponseEntity<>(bytes, headers, statusCode);
+    //关闭输入流
+    is.close();
+    return responseEntity;
+}
+```
+
+### 
+
+# 十、文件上传和下载
+
+# 十一、拦截器(重点)
+
+请求执行顺序:
+
+filter->dispatcher-servlet->(preHandle)controller(postHandle)->ModelAndView(afterComplation)
+
+### 1、拦截器的配置
+
+SpringMVC中的拦截器用于拦截控制器方法的执行
+
+SpringMVC中的拦截器需要实现HandlerInterceptor
+
+SpringMVC的拦截器必须在SpringMVC的配置文件中进行配置：
+
+```xml
+<!--  配置拦截器  -->
+<mvc:interceptors>
+    <!--  方式1:指定某个bean为拦截器      -->
+    <!--        <bean class="com.kali.handle.interceptor.InterceptorDemo1"></bean>-->
+    <!--  方式2:根据beanid选择拦截器      -->
+    <!--        <ref bean="interceptorDemo1"></ref>-->
+    <!--  以上两种配置方式都是对DispatcherServlet所处理的所有请求进行拦截-->
+    <mvc:interceptor>
+        <!--
+        仅对任意一级目录进行拦截
+        <mvc:mapping path="/*"/>
+        -->
+        <!-- 对任意多级目录进行拦截  -->
+        <mvc:mapping path="/**"/>
+        <!-- 首页不进行拦截  -->
+        <mvc:exclude-mapping path="/"/>
+        <ref bean="interceptorDemo1"></ref>
+    </mvc:interceptor>
+</mvc:interceptors>
+```
+
+### 2、拦截器的三个抽象方法
+
+SpringMVC中的拦截器有三个抽象方法：
+
+preHandle：控制器方法执行之前执行preHandle()，其boolean类型的返回值表示是否拦截或放行，返回true为放行，即调用控制器方法；返回false表示拦截，即不调用控制器方法
+
+postHandle：控制器方法执行之后执行postHandle()
+
+afterComplation：处理完视图和模型数据，渲染视图完毕之后执行afterComplation()
+
+### 3、多个拦截器的执行顺序
+
+a>若每个拦截器的preHandle()都返回true
+
+此时多个拦截器的执行顺序和拦截器在SpringMVC的配置文件的配置顺序有关：
+
+preHandle()会按照配置的顺序执行，而postHandle()和afterComplation()会按照配置的反序执行
+
+```html
+InterceptorDemo1->preHandle
+InterceptorDemo2->preHandle
+InterceptorDemo2->postHandle
+InterceptorDemo1->postHandle
+InterceptorDemo2->afterCompletion
+InterceptorDemo1->afterCompletion
+```
+
+![handle1](img/handle1.png)
+
+![handle2](img/handle2.png)
+
+![handle3](img/handle3.png)
+
+![handle4](img/handle4.png)
+
+b>若某个拦截器的preHandle()返回了false
+
+preHandle()返回false和它之前的拦截器的preHandle()都会执行，postHandle()都不执行，返回false的拦截器之前的拦截器的afterComplation()会执行(参考上面的img/handle2.png,img/handle4.png)
+
+# 十二、异常处理器
+
+# 十三、注解配置SpringMVC
+
+# 十四、SpringMVC执行流程

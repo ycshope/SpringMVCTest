@@ -56,6 +56,13 @@
             <artifactId>thymeleaf-spring5</artifactId>
             <version>3.0.12.RELEASE</version>
         </dependency>
+
+        <!--导入json处理器-->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.12.1</version>
+        </dependency>
     </dependencies>
 
     <build>
