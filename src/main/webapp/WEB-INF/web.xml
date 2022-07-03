@@ -68,8 +68,14 @@
             <param-value>classpath:viewCtler.xml</param-value>
             -->
 
-            <!--  restful案例 -->
+            <!--  restful案例
             <param-value>classpath:restful.xml</param-value>
+            -->
+
+            <!--  http请求体 -->
+            <param-value>classpath:httpMsgCvter.xml</param-value>
+
+            <param-value>classpath:handle.xml</param-value>
         </init-param>
         <!--
             作为框架的核心组件,在启动过程中有大量的初始化操作要做

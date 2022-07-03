@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <title>Welcome to HttpMessageConverter Index</title>
+</head>
+<body>
+    <h1>Welcome to HttpMessageConverter Index</h1>
+    <h2>Test RequestBody</h2>
+    <form th:action="@{/reqBodyDemo1}" method="post"></br>
+        lastname:<input type="text" name="lastName"></br>
+        email:<input type="text" name="email"></br>
+        <input type="submit" value="submit"></br>
+    </form>
+    </br>
+    </br>
+    <h2>Test RequestRequestEntity</h2>
+    <form th:action="@{/reqEttDemo1}" method="post"></br>
+        lastname:<input type="text" name="lastName"></br>
+        email:<input type="text" name="email"></br>
+        <input type="submit" value="submit"></br>
+    </form>
+
+    <h2>Test ResponseBody</h2>
+    <a th:href="@{/rspBodyDemo1}">rspBodyDemo1</a>
+
+    <h2>Test ResponseJson</h2>
+    <a th:href="@{/rspJsonDemo1}">rspJsonDemo1</a>
+
+    <h2>Test Ajax</h2>
+    <a class="testajax" th:href="@{/ajaxDemo1}">Ajax</a>
+</body>
+<script>
+    $(document).ready(function(){
+        $(".testajax").click(function(event){
+            event.preventDefault();
+            $.post(event.target.href,
+             {
+                username:"admin",
+                password:"password"
+             },
+            function(data,status){
+			alert(data);
+		    });
+        });
+    });
+</script>
+</html>
