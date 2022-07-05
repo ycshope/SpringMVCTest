@@ -1712,7 +1712,86 @@ preHandle()返回false和它之前的拦截器的preHandle()都会执行，postH
 
 # 十二、异常处理器
 
+### 1、基于配置的异常处理
+
+SpringMVC提供了一个处理控制器方法执行过程中所出现的异常的接口：HandlerExceptionResolver
+
+HandlerExceptionResolver接口的实现类有：DefaultHandlerExceptionResolver和SimpleMappingExceptionResolver
+
+SpringMVC提供了自定义的异常处理器SimpleMappingExceptionResolver，使用方式：
+
+```xml
+    <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+        <property name="exceptionMappings">
+            <props>
+                <!--
+                    properties的键标识处理器方法执行过程中出现的异常
+                    properties的值标识若出现指定异常时，设置一个新的视图名称(映射器)，跳转到指定页面
+                -->
+                <prop key="java.lang.ArithmeticException">error</prop>
+            </props>
+        </property>
+        <!--  exceptionAttribute属性设置一个属性名,将出现的异常信息再请求域中进行共享(域共享异常)      -->
+        <property name="exceptionAttribute" value="ex"></property>
+    </bean>
+```
+
+```java
+@Controller
+public class ExceptHandleDemo1 {
+
+    @RequestMapping(value = "/exceptHandleDemo1")
+    public String exceptHandleDemo1() {
+        System.out.println(1 / 0);
+        //异常触发时直接找到ExceptionHandler bean
+        return "success";
+    }
+}
+```
+
+```html
+<p th:text="${ex}"></p>
+```
+
+### 2、基于注解的异常处理
+
+```java
+@Controller
+public class ExceptHandleDemo1 {
+
+    @RequestMapping(value = "/exceptHandleDemo1")
+    public String exceptHandleDemo1() {
+        System.out.println(1 / 0);
+        //异常触发时直接找到@ExceptionHandler(ArithmeticException.class)
+        return "success";
+    }
+}
+```
+
+```java
+//@ControllerAdvice将当前类标识为异常处理的组件
+@ControllerAdvice
+public class HandlebyAnnotationDemo1 {
+    //@ExceptionHandler用于设置所标识方法处理的异常，这里仅处理ArithmeticException触发的异常
+    @ExceptionHandler(ArithmeticException.class)
+    //ex标识当前请求处理中所出现的异常
+    public String HandlebyAnnotation(Exception ex, Model model) {
+        model.addAttribute("ex", ex);
+        return "error";
+    }
+}
+```
+
+
+
 # 十三、注解配置SpringMVC
+
+使用配置类和注解代替web.xml和SpringMVC配置文件的功能
+
+### 1、创建初始化类，代替web.xml
+
+在Servlet3.0环境中，容器会在类路径中查找实现javax.servlet.ServletContainerInitializer接口的类，如果找到的话就用它来配置Servlet容器。
+Spring提供了这个接口的实现，名为SpringServletContainerInitializer，这个类反过来又会查找实现WebApplicationInitializer的类并将配置的任务交给它们来完成。Spring3.2引入了一个便利的WebApplicationInitializer基础实现，名为AbstractAnnotationConfigDispatcherServletInitializer，当我们的类扩展了AbstractAnnotationConfigDispatcherServletInitializer并将其部署到Servlet3.0容器的时候，容器会自动发现它，并用它来配置Servlet上下文。
 
 # 十四、SpringMVC执行流程
 
