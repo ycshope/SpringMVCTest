@@ -1710,6 +1710,17 @@ b>若某个拦截器的preHandle()返回了false
 
 preHandle()返回false和它之前的拦截器的preHandle()都会执行，postHandle()都不执行，返回false的拦截器之前的拦截器的afterComplation()会执行(参考上面的img/handle2.png,img/handle4.png)
 
+```text
+InterceptorDemo1->preHandle
+InterceptorDemo2->preHandle
+InterceptorDemo2->postHandle	x
+InterceptorDemo1->postHandle	x
+InterceptorDemo2->afterCompletion	x
+InterceptorDemo1->afterCompletion
+```
+
+
+
 # 十二、异常处理器
 
 ### 1、基于配置的异常处理
@@ -1725,8 +1736,8 @@ SpringMVC提供了自定义的异常处理器SimpleMappingExceptionResolver，�
         <property name="exceptionMappings">
             <props>
                 <!--
-                    properties的键标识处理器方法执行过程中出现的异常
-                    properties的值标识若出现指定异常时，设置一个新的视图名称(映射器)，跳转到指定页面
+                    properties的键标识处理器方法执行过程中出现+的异常
+                    properties的值标识若出现指定异常时，设置一个新的视图名称(映射器)，跳转到指定页面 (这里跳转到error)
                 -->
                 <prop key="java.lang.ArithmeticException">error</prop>
             </props>
@@ -1793,7 +1804,212 @@ public class HandlebyAnnotationDemo1 {
 在Servlet3.0环境中，容器会在类路径中查找实现javax.servlet.ServletContainerInitializer接口的类，如果找到的话就用它来配置Servlet容器。
 Spring提供了这个接口的实现，名为SpringServletContainerInitializer，这个类反过来又会查找实现WebApplicationInitializer的类并将配置的任务交给它们来完成。Spring3.2引入了一个便利的WebApplicationInitializer基础实现，名为AbstractAnnotationConfigDispatcherServletInitializer，当我们的类扩展了AbstractAnnotationConfigDispatcherServletInitializer并将其部署到Servlet3.0容器的时候，容器会自动发现它，并用它来配置Servlet上下文。
 
-# 十四、SpringMVC执行流程
+```java
+//Web工程的初始化类,用来代替web.xml
+public class Webinit extends AbstractAnnotationConfigDispatcherServletInitializer {
+    /**
+     * 指定Srping的配置类
+     *
+     * @return
+     */
+    @Override
+    protected Class<?>[] getRootConfigClasses() {
+        return new Class[]{SpringConfig.class};
+    }
+
+    /**
+     * 指定SrpingMVC的配置类
+     *
+     * @return
+     */
+    @Override
+    protected Class<?>[] getServletConfigClasses() {
+        return new Class[]{WebConfig.class};
+    }
+
+    /**
+     * 指定DispatcherServlet的映射规则,即url-parttern
+     *
+     * @return
+     */
+    @Override
+    protected String[] getServletMappings() {
+        return new String[]{"/"};
+    }
+
+    /**
+     * 注册过滤器
+     *
+     * @return
+     */
+
+    @Override
+    protected Filter[] getServletFilters() {
+        CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
+        characterEncodingFilter.setEncoding("UTF-");
+        characterEncodingFilter.setForceResponseEncoding(true);
+        HiddenHttpMethodFilter hiddenHttpMethodFilter = new HiddenHttpMethodFilter();
+        return new Filter[]{characterEncodingFilter, hiddenHttpMethodFilter};
+    }
+}
+
+```
+
+### 2、创建SpringConfig配置类，代替spring的配置文件
+
+```java
+@Configuration
+public class SpringConfig {
+    //SSM整合后,spring的配置信息写在这个类中
+}
+```
+
+### 3、创建WebConfig配置类，代替SpringMVC的配置文件
+
+```java
+/**
+ * 代替SpringMVC的配置文件:
+ * 1.扫描组件   2.视图解析器 3.view-controller  4.default-servlet-handle
+ * 5.mvc注解驱动    6.文件上传解析器   7.异常处理  8.拦截器
+ */
+
+//将当前类标识为一个配置类
+@Configuration
+//1.扫描组件
+@ComponentScan("com.mvc.controller")
+//5.mvc注解驱动 <mvc:annotation-driven/>
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
+
+    //7.异常处理
+    @Override
+    public void configureHandlerExceptionResolvers(List<HandlerExceptionResolver> resolvers) {
+        //<bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+        SimpleMappingExceptionResolver exceptionResolver = new SimpleMappingExceptionResolver();
+        Properties prop = new Properties();
+        //<property name="exceptionMappings">
+        //<prop key="java.lang.ArithmeticException">error</prop>
+        prop.setProperty("java.lang.ArithmeticException", "error");
+        exceptionResolver.setExceptionMappings(prop);
+        //<property name="exceptionAttribute" value="ex"></property>
+        exceptionResolver.setExceptionAttribute("ex");
+        resolvers.add(exceptionResolver);
+    }
+
+    //6.文件上传解析器
+//    @Bean
+//    public CommonsMultipartResolver multipartResolver() {
+//        return new CommonsMultipartResolver();
+//    }
+
+
+    //4.default-servlet-handle
+    //开放对静态资源的访问:<mvc:default-servlet-handler/>
+    @Override
+    public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
+        configurer.enable();
+    }
+
+
+    //3.view-controller
+    //<mvc:view-controller path="/" view-name="index"></mvc:view-controller>
+    @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+        registry.addViewController("/view-controller").setViewName("view-controller");
+    }
+
+
+    //8.拦截器
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        TestInterceptor testInterceptor = new TestInterceptor();
+        registry.addInterceptor(testInterceptor).addPathPatterns("/**");
+    }
+
+
+    //2.视图解析器
+    //配置生成模板解析器
+    @Bean
+    public ITemplateResolver templateResolver() {
+        WebApplicationContext webApplicationContext = ContextLoader.getCurrentWebApplicationContext();
+        //ServletContextTemplateResolver需要一个ServletContext作为构造参数,可通过WebApplicationContext的方法获得
+        ServletContextTemplateResolver templateResolver = new ServletContextTemplateResolver(
+                webApplicationContext.getServletContext());
+        templateResolver.setPrefix("/WEB-INF/templates/");
+        templateResolver.setSuffix(".html");
+        templateResolver.setCharacterEncoding("UTF-8");
+        templateResolver.setTemplateMode(TemplateMode.HTML);
+        return templateResolver;
+    }
+
+    //生成模板引擎并为模板引擎注入模板解析器，通过autowire将上面的对象直接作为传参
+    @Bean
+    public SpringTemplateEngine templateEngine(ITemplateResolver templateResolver) {
+        SpringTemplateEngine templateEngine = new SpringTemplateEngine();
+        templateEngine.setTemplateResolver(templateResolver);
+        return templateEngine;
+    }
+
+    //生成视图解析器并为解析器注入模板引擎，通过autowire将上面的对象直接作为传参
+    @Bean
+    public ViewResolver viewResolver(SpringTemplateEngine templateEngine) {
+        ThymeleafViewResolver viewResolver = new ThymeleafViewResolver();
+        viewResolver.setCharacterEncoding("UTF-8");
+        viewResolver.setTemplateEngine(templateEngine);
+        return viewResolver;
+    }
+}
+```
+
+### 4、测试功能
+
+```java
+@Controller
+public class TestController1 {
+    @RequestMapping(value = "/")
+    public String testController1() {
+        return "index";
+    }
+}
+```
+
+
+
+# 十四、SpringMVC执行流程(后续补)
+
+### 1、SpringMVC常用组件
+
+### 1、SpringMVC常用组件
+
+- DispatcherServlet：**前端控制器**，不需要工程师开发，由框架提供
+
+作用：统一处理请求和响应，整个流程控制的中心，由它调用其它组件处理用户的请求
+
+- HandlerMapping：**处理器映射器**，不需要工程师开发，由框架提供
+
+作用：根据请求的url、method等信息查找Handler，即控制器方法
+
+- Handler：**处理器**，需要工程师开发
+
+作用：在DispatcherServlet的控制下Handler对具体的用户请求进行处理
+
+- HandlerAdapter：**处理器适配器**，不需要工程师开发，由框架提供
+
+作用：通过HandlerAdapter对处理器（控制器方法）进行执行
+
+- ViewResolver：**视图解析器**，不需要工程师开发，由框架提供
+
+作用：进行视图解析，得到相应的视图，例如：ThymeleafView、InternalResourceView、RedirectView
+
+- View：**视图**
+
+作用：将模型数据通过页面展示给用户
+
+### 2、DispatcherServlet初始化过程
+
+### 3、DispatcherServlet调用组件处理请求
+
+### 4、SpringMVC的执行流程
 
 bp拓展
 

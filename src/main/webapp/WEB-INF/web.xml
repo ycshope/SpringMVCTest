@@ -76,11 +76,13 @@
             <param-value>classpath:httpMsgCvter.xml</param-value>
             -->
 
-            <!-- 拦截器
+            <!-- 拦截器 -->
             <param-value>classpath:handle.xml</param-value>
             -->
-            
+
+            <!--  异常拦截器
             <param-value>classpath:exceptionHandle.xml</param-value>
+            -->
         </init-param>
         <!--
             作为框架的核心组件,在启动过程中有大量的初始化操作要做
