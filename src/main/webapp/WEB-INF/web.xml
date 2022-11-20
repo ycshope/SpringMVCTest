@@ -52,7 +52,7 @@
               <param-value>classpath:springMVC.xml</param-value>
               -->
 
-            <!--    RequestMapping
+            <!--    RequestMapping-->
             <param-value>classpath:reqMapping.xml</param-value>
             -->
 
@@ -76,7 +76,7 @@
             <param-value>classpath:httpMsgCvter.xml</param-value>
             -->
 
-            <!-- 拦截器 -->
+            <!-- 拦截器
             <param-value>classpath:handle.xml</param-value>
             -->
 

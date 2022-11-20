@@ -7,7 +7,7 @@ MVC是一种软件架构的思想，将软件按照模型、视图、控制器�
 M：Model，模型层，指工程中的JavaBean，作用是处理数据
 
 JavaBean分为两类：
-
+    
 - 一类称为实体类Bean：专门存储业务数据的，如 Student、User 等
 - 一类称为业务处理 Bean：指 Service 或 Dao 对象，专门用于处理业务逻辑和数据访问。
 
@@ -1975,9 +1975,7 @@ public class TestController1 {
 
 
 
-# 十四、SpringMVC执行流程(后续补)
-
-### 1、SpringMVC常用组件
+# 十四、SpringMVC执行流程(难点)
 
 ### 1、SpringMVC常用组件
 
@@ -1991,11 +1989,11 @@ public class TestController1 {
 
 - Handler：**处理器**，需要工程师开发
 
-作用：在DispatcherServlet的控制下Handler对具体的用户请求进行处理
+作用：在DispatcherServlet的控制下Handler对具体的用户请求进行处理(就是controller)
 
 - HandlerAdapter：**处理器适配器**，不需要工程师开发，由框架提供
 
-作用：通过HandlerAdapter对处理器（控制器方法）进行执行
+作用：通过HandlerAdapter对处理器（控制器方法）进行执行(找到handle对应的方法,并执行)
 
 - ViewResolver：**视图解析器**，不需要工程师开发，由框架提供
 
@@ -2005,9 +2003,389 @@ public class TestController1 {
 
 作用：将模型数据通过页面展示给用户
 
-### 2、DispatcherServlet初始化过程
+### 2、DispatcherServlet初始化过程（难点）
+
+**DispatcherServlet 本质上是一个 Servlet**，所以天然的遵循 Servlet 的生命周期。所以宏观上是 Servlet 生命周期来进行调度。
+
+![init1](img/mvcinit1.png)
+
+![init2](img/mvcinit2.png)
+
+![init3](img/mvcinit3.png)
+
+
+#### a>初始化WebApplicationContext
+所在类：org.springframework.web.servlet.FrameworkServlet
+
+```java
+protected WebApplicationContext initWebApplicationContext() {
+WebApplicationContext rootContext =
+WebApplicationContextUtils.getWebApplicationContext(getServletContext());
+WebApplicationContext wac = null;
+
+    if (this.webApplicationContext != null) {
+        // A context instance was injected at construction time -> use it
+        wac = this.webApplicationContext;
+        if (wac instanceof ConfigurableWebApplicationContext) {
+            ConfigurableWebApplicationContext cwac = (ConfigurableWebApplicationContext) wac;
+            if (!cwac.isActive()) {
+                // The context has not yet been refreshed -> provide services such as
+                // setting the parent context, setting the application context id, etc
+                if (cwac.getParent() == null) {
+                    // The context instance was injected without an explicit parent -> set
+                    // the root application context (if any; may be null) as the parent
+                    cwac.setParent(rootContext);
+                }
+                configureAndRefreshWebApplicationContext(cwac);
+            }
+        }
+    }
+    if (wac == null) {
+        // No context instance was injected at construction time -> see if one
+        // has been registered in the servlet context. If one exists, it is assumed
+        // that the parent context (if any) has already been set and that the
+        // user has performed any initialization such as setting the context id
+        wac = findWebApplicationContext();
+    }
+    if (wac == null) {
+        // No context instance is defined for this servlet -> create a local one
+        // 创建WebApplicationContext
+        wac = createWebApplicationContext(rootContext);
+    }
+
+    if (!this.refreshEventReceived) {
+        // Either the context is not a ConfigurableApplicationContext with refresh
+        // support or the context injected at construction time had already been
+        // refreshed -> trigger initial onRefresh manually here.
+        synchronized (this.onRefreshMonitor) {
+            // 刷新WebApplicationContext
+            onRefresh(wac);
+        }
+    }
+
+    if (this.publishContext) {
+        // Publish the context as a servlet context attribute.
+        // 将IOC容器在应用域共享
+        String attrName = getServletContextAttributeName();
+        getServletContext().setAttribute(attrName, wac);
+    }
+
+    return wac;
+}
+```
+
+#### b>创建WebApplicationContext
+所在类：org.springframework.web.servlet.FrameworkServlet
+
+```java
+protected WebApplicationContext createWebApplicationContext(@Nullable ApplicationContext parent) {
+    Class<?> contextClass = getContextClass();
+    if (!ConfigurableWebApplicationContext.class.isAssignableFrom(contextClass)) {
+        throw new ApplicationContextException(
+            "Fatal initialization error in servlet with name '" + getServletName() +
+            "': custom WebApplicationContext class [" + contextClass.getName() +
+            "] is not of type ConfigurableWebApplicationContext");
+    }
+    // 通过反射创建 IOC 容器对象
+    ConfigurableWebApplicationContext wac =
+        (ConfigurableWebApplicationContext) BeanUtils.instantiateClass(contextClass);
+
+    wac.setEnvironment(getEnvironment());
+    // 设置父容器:spring和springMVC容器整合，配置文件相互独立,将springIOC设置为springMVCIOC的父容器
+    wac.setParent(parent);
+    String configLocation = getContextConfigLocation();
+    if (configLocation != null) {
+        wac.setConfigLocation(configLocation);
+    }
+    configureAndRefreshWebApplicationContext(wac);
+
+    return wac;
+}
+```
+
+#### c>DispatcherServlet初始化策略
+FrameworkServlet创建WebApplicationContext后，刷新容器，调用onRefresh(wac)，此方法在DispatcherServlet中进行了重写，调用了initStrategies(context)方法，初始化策略，**即初始化DispatcherServlet的各个组件**
+
+所在类：org.springframework.web.servlet.DispatcherServlet
+
+```java
+protected void initStrategies(ApplicationContext context) {
+   initMultipartResolver(context);
+   initLocaleResolver(context);
+   initThemeResolver(context);
+   initHandlerMappings(context);
+   initHandlerAdapters(context);
+   initHandlerExceptionResolvers(context);
+   initRequestToViewNameTranslator(context);
+   initViewResolvers(context);
+   initFlashMapManager(context);
+}
+
+```
 
 ### 3、DispatcherServlet调用组件处理请求
+
+![req1](img/mvcreq1.png)
+![req2](img/mvcreq2.png)
+![req3](img/mvcreq3.png)
+![req4](img/mvcreq4.png)
+
+#### a>processRequest()
+
+FrameworkServlet重写HttpServlet中的service()和doXxx()，这些方法中调用了processRequest(request, response)
+
+所在类：org.springframework.web.servlet.FrameworkServlet
+
+```java
+protected final void processRequest(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
+
+    long startTime = System.currentTimeMillis();
+    Throwable failureCause = null;
+
+    LocaleContext previousLocaleContext = LocaleContextHolder.getLocaleContext();
+    LocaleContext localeContext = buildLocaleContext(request);
+
+    RequestAttributes previousAttributes = RequestContextHolder.getRequestAttributes();
+    ServletRequestAttributes requestAttributes = buildRequestAttributes(request, response, previousAttributes);
+
+    WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
+    asyncManager.registerCallableInterceptor(FrameworkServlet.class.getName(), new RequestBindingInterceptor());
+
+    initContextHolders(request, localeContext, requestAttributes);
+
+    try {
+        // 执行服务，doService()是一个抽象方法，在DispatcherServlet中进行了重写
+        doService(request, response);
+    }
+    catch (ServletException | IOException ex) {
+        failureCause = ex;
+        throw ex;
+    }
+    catch (Throwable ex) {
+        failureCause = ex;
+        throw new NestedServletException("Request processing failed", ex);
+    }
+
+    finally {
+        resetContextHolders(request, previousLocaleContext, previousAttributes);
+        if (requestAttributes != null) {
+            requestAttributes.requestCompleted();
+        }
+        logResult(request, response, failureCause, asyncManager);
+        publishRequestHandledEvent(request, response, startTime, failureCause);
+    }
+}
+```
+
+#### b>doService()
+
+所在类：org.springframework.web.servlet.DispatcherServlet
+
+```java
+@Override
+protected void doService(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    logRequest(request);
+
+    // Keep a snapshot of the request attributes in case of an include,
+    // to be able to restore the original attributes after the include.
+    Map<String, Object> attributesSnapshot = null;
+    if (WebUtils.isIncludeRequest(request)) {
+        attributesSnapshot = new HashMap<>();
+        Enumeration<?> attrNames = request.getAttributeNames();
+        while (attrNames.hasMoreElements()) {
+            String attrName = (String) attrNames.nextElement();
+            if (this.cleanupAfterInclude || attrName.startsWith(DEFAULT_STRATEGIES_PREFIX)) {
+                attributesSnapshot.put(attrName, request.getAttribute(attrName));
+            }
+        }
+    }
+
+    // Make framework objects available to handlers and view objects.
+    request.setAttribute(WEB_APPLICATION_CONTEXT_ATTRIBUTE, getWebApplicationContext());
+    request.setAttribute(LOCALE_RESOLVER_ATTRIBUTE, this.localeResolver);
+    request.setAttribute(THEME_RESOLVER_ATTRIBUTE, this.themeResolver);
+    request.setAttribute(THEME_SOURCE_ATTRIBUTE, getThemeSource());
+
+    if (this.flashMapManager != null) {
+        FlashMap inputFlashMap = this.flashMapManager.retrieveAndUpdate(request, response);
+        if (inputFlashMap != null) {
+            request.setAttribute(INPUT_FLASH_MAP_ATTRIBUTE, Collections.unmodifiableMap(inputFlashMap));
+        }
+        request.setAttribute(OUTPUT_FLASH_MAP_ATTRIBUTE, new FlashMap());
+        request.setAttribute(FLASH_MAP_MANAGER_ATTRIBUTE, this.flashMapManager);
+    }
+
+    RequestPath requestPath = null;
+    if (this.parseRequestPath && !ServletRequestPathUtils.hasParsedRequestPath(request)) {
+        requestPath = ServletRequestPathUtils.parseAndCache(request);
+    }
+
+    try {
+        // 处理请求和响应
+        doDispatch(request, response);
+    }
+    finally {
+        if (!WebAsyncUtils.getAsyncManager(request).isConcurrentHandlingStarted()) {
+            // Restore the original attribute snapshot, in case of an include.
+            if (attributesSnapshot != null) {
+                restoreAttributesAfterInclude(request, attributesSnapshot);
+            }
+        }
+        if (requestPath != null) {
+            ServletRequestPathUtils.clearParsedRequestPath(request);
+        }
+    }
+}
+```
+
+#### c>doDispatch()
+
+所在类：org.springframework.web.servlet.DispatcherServlet
+
+```java
+protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    HttpServletRequest processedRequest = request;
+    HandlerExecutionChain mappedHandler = null;
+    boolean multipartRequestParsed = false;
+
+    WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
+
+    try {
+        ModelAndView mv = null;
+        Exception dispatchException = null;
+
+        try {
+            processedRequest = checkMultipart(request);
+            multipartRequestParsed = (processedRequest != request);
+
+            // Determine handler for the current request.
+            /*
+                mappedHandler：调用链
+                包含handler、interceptorList、interceptorIndex
+                handler：浏览器发送的请求所匹配的控制器方法
+                interceptorList：处理控制器方法的所有拦截器集合
+                interceptorIndex：拦截器索引，控制拦截器afterCompletion()的执行
+            */
+            mappedHandler = getHandler(processedRequest);
+            if (mappedHandler == null) {
+                noHandlerFound(processedRequest, response);
+                return;
+            }
+
+            // Determine handler adapter for the current request.
+               // 通过控制器方法创建相应的处理器适配器，调用所对应的控制器方法
+            HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
+
+            // Process last-modified header, if supported by the handler.
+            String method = request.getMethod();
+            boolean isGet = "GET".equals(method);
+            if (isGet || "HEAD".equals(method)) {
+                long lastModified = ha.getLastModified(request, mappedHandler.getHandler());
+                if (new ServletWebRequest(request, response).checkNotModified(lastModified) && isGet) {
+                    return;
+                }
+            }
+            
+            // 调用拦截器的preHandle()
+            if (!mappedHandler.applyPreHandle(processedRequest, response)) {
+                return;
+            }
+
+            // Actually invoke the handler.
+            // 由处理器适配器调用具体的控制器方法，最终获得ModelAndView对象
+            mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
+
+            if (asyncManager.isConcurrentHandlingStarted()) {
+                return;
+            }
+
+            applyDefaultViewName(processedRequest, mv);
+            // 调用拦截器的postHandle()
+            mappedHandler.applyPostHandle(processedRequest, response, mv);
+        }
+        catch (Exception ex) {
+            dispatchException = ex;
+        }
+        catch (Throwable err) {
+            // As of 4.3, we're processing Errors thrown from handler methods as well,
+            // making them available for @ExceptionHandler methods and other scenarios.
+            dispatchException = new NestedServletException("Handler dispatch failed", err);
+        }
+        // 后续处理：处理模型数据和渲染视图
+        processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
+    }
+    catch (Exception ex) {
+        triggerAfterCompletion(processedRequest, response, mappedHandler, ex);
+    }
+    catch (Throwable err) {
+        triggerAfterCompletion(processedRequest, response, mappedHandler,
+                               new NestedServletException("Handler processing failed", err));
+    }
+    finally {
+        if (asyncManager.isConcurrentHandlingStarted()) {
+            // Instead of postHandle and afterCompletion
+            if (mappedHandler != null) {
+                mappedHandler.applyAfterConcurrentHandlingStarted(processedRequest, response);
+            }
+        }
+        else {
+            // Clean up any resources used by a multipart request.
+            if (multipartRequestParsed) {
+                cleanupMultipart(processedRequest);
+            }
+        }
+    }
+}
+```
+
+#### d>processDispatchResult()
+
+```java
+private void processDispatchResult(HttpServletRequest request, HttpServletResponse response,
+                                   @Nullable HandlerExecutionChain mappedHandler, @Nullable ModelAndView mv,
+                                   @Nullable Exception exception) throws Exception {
+
+    boolean errorView = false;
+
+    if (exception != null) {
+        if (exception instanceof ModelAndViewDefiningException) {
+            logger.debug("ModelAndViewDefiningException encountered", exception);
+            mv = ((ModelAndViewDefiningException) exception).getModelAndView();
+        }
+        else {
+            Object handler = (mappedHandler != null ? mappedHandler.getHandler() : null);
+            mv = processHandlerException(request, response, handler, exception);
+            errorView = (mv != null);
+        }
+    }
+
+    // Did the handler return a view to render?
+    if (mv != null && !mv.wasCleared()) {
+        // 处理模型数据和渲染视图
+        render(mv, request, response);
+        if (errorView) {
+            WebUtils.clearErrorRequestAttributes(request);
+        }
+    }
+    else {
+        if (logger.isTraceEnabled()) {
+            logger.trace("No view rendering, null ModelAndView returned.");
+        }
+    }
+
+    if (WebAsyncUtils.getAsyncManager(request).isConcurrentHandlingStarted()) {
+        // Concurrent handling started during a forward
+        return;
+    }
+
+    if (mappedHandler != null) {
+        // Exception (if any) is already handled..
+        // 调用拦截器的afterCompletion()
+        mappedHandler.triggerAfterCompletion(request, response, null);
+    }
+}
+```
 
 ### 4、SpringMVC的执行流程
 
