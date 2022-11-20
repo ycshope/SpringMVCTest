@@ -2404,7 +2404,7 @@ iii. 如果有配置，则访问目标资源（一般为静态资源，如：JS,
 b) 存在则执行下面的流程
 
 3. 根据该URI，调用HandlerMapping获得该Handler配置的所有相关的对象（包括Handler对象以及Handler对象对应的拦截器），最后以HandlerExecutionChain执行链对象的形式返回。
-4. DispatcherServlet 根据获得的Handler，选择一个合适的HandlerAdapter。
+4. DispatcherServlet 根据获得的Handler，选择一个合适的HandlerAdapter(包括filter,interceptors,controller/handler 等)。
 5. 如果成功获得HandlerAdapter，此时将开始执行拦截器的preHandler(…)方法【正向】 
 6. 提取Request中的模型数据，填充Handler入参，开始执行Handler（Controller)方法，处理请求。在填充Handler的入参过程中，根据你的配置，Spring将帮你做一些额外的工作：
 
